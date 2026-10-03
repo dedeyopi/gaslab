@@ -15,28 +15,21 @@ export function BalloonIllustration({
   className?: string;
 }) {
   const v = Math.max(2, Math.min(10, volume));
-  const t = (v - 2) / 8; // 0..1
-
-  // Ukuran balon: 0.5 (kempis) → 1.05 (mengembang)
+  const t = (v - 2) / 8;
   const scale = 0.5 + t * 0.55;
-
-  // Kerutan muncul saat balon kempis
   const wrinkleOpacity = Math.max(0, 1 - t * 1.6);
-
-  // Kilau bertambah saat balon mengembang
   const shine = 0.4 + t * 0.55;
-
-  // Titik jangkar di simpul bawah balon
   const anchorX = 100;
   const anchorY = 160;
 
+  // Partikel lebih sedikit & lebih halus agar tidak terlihat "hitam pekat"
+  const particles: [number, number][] = [
+    [78, 66], [112, 58], [96, 92], [126, 88], [70, 100],
+    [108, 118], [86, 132], [130, 62], [64, 76], [118, 140],
+  ];
+
   return (
-    <svg
-      viewBox="0 0 200 220"
-      className={className}
-      role="img"
-      aria-label={`Balon dengan volume ${v.toFixed(1)} liter`}
-    >
+    <svg viewBox="0 0 200 220" className={className} role="img" aria-label={`Balon volume ${v.toFixed(1)} L`}>
       <defs>
         <radialGradient id="blnSkin" cx="38%" cy="30%" r="72%">
           <stop offset="0%" stopColor="#a5f3fc" />
@@ -49,92 +42,46 @@ export function BalloonIllustration({
         </radialGradient>
       </defs>
 
-      {/* Tali — di luar grup, tidak ikut mengecil */}
-      <path
-        d="M100 160 Q105 178 96 192 Q92 204 100 216"
-        stroke="#64748b"
-        strokeWidth="1.5"
-        fill="none"
-        opacity="0.85"
-      />
+      <path d="M100 160 Q105 178 96 192 Q92 204 100 216"
+            stroke="#64748b" strokeWidth="1.5" fill="none" opacity="0.85" />
 
-      {/* Badan balon — discale dari titik simpul */}
-      <g
-        style={{
-          transformOrigin: `${anchorX}px ${anchorY}px`,
-          transform: `scale(${scale})`,
-          transition: 'transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-        }}
-      >
-        <ellipse
-          cx="100"
-          cy="85"
-          rx="62"
-          ry="72"
-          fill="url(#blnSkin)"
-          stroke="#0e7490"
-          strokeWidth="1.6"
-        />
+      <g style={{
+        transformOrigin: `${anchorX}px ${anchorY}px`,
+        transform: `scale(${scale})`,
+        transition: 'transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+      }}>
+        <ellipse cx="100" cy="85" rx="62" ry="72"
+                 fill="url(#blnSkin)" stroke="#0e7490" strokeWidth="1.6" />
 
         <ellipse cx="80" cy="52" rx="30" ry="36" fill="url(#blnHighlight)" />
-        <ellipse
-          cx="70"
-          cy="40"
-          rx="6"
-          ry="9"
-          fill="#ffffff"
-          opacity={shine}
-          transform="rotate(-25 70 40)"
-        />
+        <ellipse cx="70" cy="40" rx="6" ry="9" fill="#ffffff" opacity={shine}
+                 transform="rotate(-25 70 40)" />
 
-        {/* Kerutan saat balon kempis */}
         {wrinkleOpacity > 0.05 && (
-          <g
-            opacity={wrinkleOpacity * 0.75}
-            stroke="#0369a1"
-            strokeWidth="1.3"
-            fill="none"
-            strokeLinecap="round"
-          >
+          <g opacity={wrinkleOpacity * 0.7} stroke="#0369a1" strokeWidth="1.3"
+             fill="none" strokeLinecap="round">
             <path d="M76 100 Q80 106 76 114" />
             <path d="M124 100 Q120 106 124 114" />
             <path d="M68 128 Q72 134 68 142" />
             <path d="M132 128 Q128 134 132 142" />
-            <path d="M94 142 Q98 146 94 150" />
-            <path d="M106 142 Q102 146 106 150" />
           </g>
         )}
 
-        {/* Partikel gas di dalam balon */}
-        {[
-          [78, 66], [112, 58], [96, 92], [126, 88], [70, 100],
-          [108, 118], [86, 132], [130, 62], [64, 76], [118, 140],
-          [95, 75], [102, 105], [82, 88], [120, 110], [74, 118],
-        ].map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="3.1" fill="#0f172a" opacity="0.75">
-            <animate
-              attributeName="cy"
-              values={`${y};${y - 5};${y}`}
-              dur={`${1.8 + (i % 4) * 0.3}s`}
-              repeatCount="indefinite"
-            />
-            <animate
-              attributeName="cx"
-              values={`${x};${x + 2};${x}`}
-              dur={`${2 + (i % 3) * 0.4}s`}
-              repeatCount="indefinite"
-            />
-          </circle>
+        {/* Partikel gas — warna putih dengan halo cyan tipis, tidak mencolok */}
+        {particles.map(([x, y], i) => (
+          <g key={i}>
+            <circle cx={x} cy={y} r="4" fill="#0891b2" opacity="0.28" />
+            <circle cx={x} cy={y} r="2.4" fill="#ffffff" opacity="0.95">
+              <animate attributeName="cy" values={`${y};${y - 5};${y}`}
+                       dur={`${1.8 + (i % 4) * 0.3}s`} repeatCount="indefinite" />
+              <animate attributeName="cx" values={`${x};${x + 2};${x}`}
+                       dur={`${2 + (i % 3) * 0.4}s`} repeatCount="indefinite" />
+            </circle>
+          </g>
         ))}
 
-        {/* Simpul balon */}
-        <path
-          d="M96 150 L91 160 L109 160 L104 150 Z"
-          fill="#0e7490"
-          stroke="#67e8f9"
-          strokeWidth="1"
-          strokeLinejoin="round"
-        />
+        <path d="M96 150 L91 160 L109 160 L104 150 Z"
+              fill="#0e7490" stroke="#67e8f9" strokeWidth="1" strokeLinejoin="round" />
       </g>
     </svg>
   );
@@ -166,24 +113,18 @@ export function ChipsBagIllustration({
           <stop offset="100%" stopColor="#78350f" />
         </linearGradient>
         <linearGradient id="bagShine" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.4" />
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
           <stop offset="35%" stopColor="#ffffff" stopOpacity="0" />
-        </linearGradient>
-        <linearGradient id="bagLabel" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#7c2d12" />
-          <stop offset="100%" stopColor="#431407" />
         </linearGradient>
       </defs>
 
       <g transform={`translate(100, 120) scale(${scaleX}, ${scaleY}) translate(-100, -120) translate(0, ${translateY})`}>
-        {/* Segel atas */}
         <rect x="42" y="28" width="116" height="10" rx="1.5" fill="#78350f" stroke="#431407" strokeWidth="0.6" />
         {Array.from({ length: 20 }).map((_, i) => (
           <line key={`t${i}`} x1={44 + i * 5.6} y1="28" x2={44 + i * 5.6} y2="38"
                 stroke="#431407" strokeWidth="0.4" opacity="0.7" />
         ))}
 
-        {/* Badan kantong */}
         <path
           d="M42 38 Q40 42 38 48 L32 172 Q34 180 42 184 Q100 194 158 184 Q166 180 168 172 L162 48 Q160 42 158 38 Z"
           fill="url(#bagFoil)" stroke="#92400e" strokeWidth="1"
@@ -193,47 +134,38 @@ export function ChipsBagIllustration({
           fill="url(#bagShine)"
         />
 
-        {/* Kerutan */}
         <path d="M58 55 Q66 72 56 92" stroke="#78350f" strokeWidth="0.9" fill="none" opacity="0.5" />
         <path d="M142 58 Q150 80 140 102" stroke="#78350f" strokeWidth="0.9" fill="none" opacity="0.5" />
-        <path d="M54 152 Q64 164 54 176" stroke="#78350f" strokeWidth="0.9" fill="none" opacity="0.5" />
-        <path d="M146 148 Q136 162 146 176" stroke="#78350f" strokeWidth="0.9" fill="none" opacity="0.5" />
 
-        {/* Label tengah */}
         <rect x="52" y="82" width="96" height="62" rx="6"
-              fill="url(#bagLabel)" stroke="#fbbf24" strokeWidth="1.5" />
+              fill="#7c2d12" stroke="#fbbf24" strokeWidth="1.5" />
 
-        {/* Brand */}
         <text x="100" y="108" textAnchor="middle" fontSize="15" fontWeight="900"
               fill="#fde68a" letterSpacing="1">CHIPS</text>
         <text x="100" y="124" textAnchor="middle" fontSize="9" fontWeight="600"
               fill="#fbbf24" letterSpacing="2">ORIGINAL</text>
 
-        {/* Ikon keripik dekoratif */}
         <ellipse cx="72" cy="134" rx="6" ry="4" fill="#fde68a" transform="rotate(-20 72 134)" />
         <ellipse cx="128" cy="134" rx="6" ry="4" fill="#fde68a" transform="rotate(20 128 134)" />
 
-        {/* Hint label gizi */}
-        <rect x="55" y="150" width="24" height="20" rx="2" fill="#fef3c7" opacity="0.9" />
+        <rect x="55" y="150" width="24" height="20" rx="2" fill="#fef3c7" />
         <line x1="58" y1="156" x2="76" y2="156" stroke="#78350f" strokeWidth="0.6" />
         <line x1="58" y1="160" x2="76" y2="160" stroke="#78350f" strokeWidth="0.6" />
         <line x1="58" y1="164" x2="72" y2="164" stroke="#78350f" strokeWidth="0.6" />
 
-        {/* Segel bawah */}
         <rect x="42" y="182" width="116" height="10" rx="1.5" fill="#78350f" stroke="#431407" strokeWidth="0.6" />
         {Array.from({ length: 20 }).map((_, i) => (
           <line key={`b${i}`} x1={44 + i * 5.6} y1="182" x2={44 + i * 5.6} y2="192"
                 stroke="#431407" strokeWidth="0.4" opacity="0.7" />
         ))}
 
-        {/* Partikel gas (muncul saat mengembang) */}
         {inflate && (
           <>
             {[
               [55, 50], [145, 55], [50, 90], [150, 95],
               [48, 140], [152, 145], [70, 175], [130, 175],
             ].map(([x, y], i) => (
-              <circle key={i} cx={x} cy={y} r="2.6" fill="#fef3c7" opacity="0.95">
+              <circle key={i} cx={x} cy={y} r="2.6" fill="#fbbf24" opacity="0.95">
                 <animate attributeName="cy" values={`${y};${y - 5};${y}`}
                          dur={`${2 + (i % 3) * 0.4}s`} repeatCount="indefinite" />
               </circle>
@@ -242,13 +174,14 @@ export function ChipsBagIllustration({
         )}
       </g>
 
-      {/* Label ketinggian */}
+      {/* Badge status ketinggian — LATAR PUTIH dengan teks berwarna */}
       <g transform="translate(100, 228)">
-        <rect x="-58" y="-12" width="116" height="20" rx="10"
-              fill="rgba(2,6,23,0.85)"
-              stroke={inflate ? '#34d399' : '#38bdf8'} strokeWidth="1" />
+        <rect x="-62" y="-13" width="124" height="22" rx="11"
+              fill="#ffffff"
+              stroke={inflate ? '#10b981' : '#0ea5e9'}
+              strokeWidth="1.5" />
         <text x="0" y="2" textAnchor="middle" fontSize="10" fontWeight="700"
-              fill={inflate ? '#6ee7b7' : '#7dd3fc'}>
+              fill={inflate ? '#047857' : '#0369a1'}>
           {inflate ? 'PEGUNUNGAN' : 'DAERAH RENDAH'}
         </text>
       </g>
